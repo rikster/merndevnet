@@ -1,5 +1,5 @@
-const express = require('express');
-const mongoose = require('mongoose');
+const express = require('express'); // Fast, unopinionated, minimalist web api framework for node.
+const mongoose = require('mongoose'); // Mongoose is a MongoDB object modeling tool designed to work in an asynchronous environment.
 
 // api files
 const users = require('./routes/api/users');
