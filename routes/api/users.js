@@ -4,6 +4,7 @@ const gravatar = require('gravatar');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const keys = require('../../config/keys');
+const passport = require('passport');
 
 // Load user model
 const User = require('../../models/user');
@@ -16,7 +17,7 @@ router.post('/register', (req, res) => {
   // to request body you need the BodyParser npm package middleware (server.js)
   User.findOne({ email: req.body.email }).then(user => {
     if (user) {
-      return res.status(400).json({ email: 'Email alreasy exists' });
+      return res.status(400).json({ email: 'Email already exists' });
     }
 
     // create a new user via the mongoose model
@@ -51,14 +52,16 @@ router.post('/register', (req, res) => {
   });
 });
 
-// api/users/login
+// @route POST api/users/login
+// @desc Post user login
+// @access Public
+
 router.post('/login', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
 
   // find user by email
   User.findOne({ email }).then(user => {
-
     // check for user
     if (!user) {
       return res.status(404).json({ email: 'User not found' });
@@ -84,5 +87,20 @@ router.post('/login', (req, res) => {
     });
   });
 });
+
+// @route   GET api/users/current
+// @desc    Return current user
+// @access  Private
+router.get(
+  '/current',
+  passport.authenticate('jwt', { session: false }),
+  (req, res) => {
+    res.json({
+      id: req.user.id,
+      name: req.user.name,
+      email: req.user.email
+    });
+  }
+);
 
 module.exports = router;
