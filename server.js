@@ -1,12 +1,17 @@
-const express = require('express'); // Fast, unopinionated, minimalist web api framework for node.
-const mongoose = require('mongoose'); // Mongoose is a MongoDB object modeling tool designed to work in an asynchronous environment.
+const express = require("express"); // Fast, unopinionated, minimalist web api framework for node.
+const mongoose = require("mongoose"); // Mongoose is a MongoDB object modeling tool designed to work in an asynchronous environment.
+const bodyParser = require("body-parser");
 
 // api files
-const users = require('./routes/api/users');
-const profile = require('./routes/api/profile');
-const posts = require('./routes/api/posts');
+const users = require("./routes/api/users");
+const profile = require("./routes/api/profile");
+const posts = require("./routes/api/posts");
 
 const app = express();
+
+// api body parser middleware - parsing json payloads
+app.use(bodyParser.urlencoded({extended: false}));
+app.use(bodyParser.json());
 
 // db config
 const db = require("./config/keys").mongoURI;
@@ -20,9 +25,9 @@ mongoose
 app.get("/", (req, res) => res.send("Hello Worlds"));
 
 // api routes
-app.use('/api/users', users);
-app.use('/api/profile', profile);
-app.use('/api/posts', posts);
+app.use("/api/users", users);
+app.use("/api/profile", profile);
+app.use("/api/posts", posts);
 
 const port = process.env.PORT || 5000;
 
