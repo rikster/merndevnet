@@ -6,6 +6,9 @@ const jwt = require('jsonwebtoken');
 const keys = require('../../config/keys');
 const passport = require('passport');
 
+// load Input validation
+const validationRegistrationInput = require('../../validation/register');
+
 // Load user model
 const User = require('../../models/user');
 
@@ -14,10 +17,18 @@ router.get('/test', (req, res) => res.json({ msg: 'users Works' }));
 
 // api/users/register
 router.post('/register', (req, res) => {
+  const { errors, isValid } = validationRegistrationInput(req.body);
+
+  // check validation
+  if (!isValid) {
+    return res.status(400).json(errors);
+  }
+
   // to request body you need the BodyParser npm package middleware (server.js)
   User.findOne({ email: req.body.email }).then(user => {
     if (user) {
-      return res.status(400).json({ email: 'Email already exists' });
+      errors.email = 'Email already exists';
+      return res.status(400).json(errors);
     }
 
     // create a new user via the mongoose model
