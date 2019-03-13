@@ -7,7 +7,8 @@ const keys = require('../../config/keys');
 const passport = require('passport');
 
 // load Input validation
-const validationRegistrationInput = require('../../validation/register');
+const validateRegisterInput = require('../../validation/register');
+const validateLoginInput = require('../../validation/login');
 
 // Load user model
 const User = require('../../models/user');
@@ -17,7 +18,7 @@ router.get('/test', (req, res) => res.json({ msg: 'users Works' }));
 
 // api/users/register
 router.post('/register', (req, res) => {
-  const { errors, isValid } = validationRegistrationInput(req.body);
+  const { errors, isValid } = validateRegisterInput(req.body);
 
   // check validation
   if (!isValid) {
@@ -66,8 +67,14 @@ router.post('/register', (req, res) => {
 // @route POST api/users/login
 // @desc Post user login
 // @access Public
-
 router.post('/login', (req, res) => {
+  const { errors, isValid } = validateLoginInput(req.body);
+
+  // Check Validation
+  if (!isValid) {
+    return res.status(400).json(errors);
+  }
+
   const email = req.body.email;
   const password = req.body.password;
 
@@ -75,7 +82,8 @@ router.post('/login', (req, res) => {
   User.findOne({ email }).then(user => {
     // check for user
     if (!user) {
-      return res.status(404).json({ email: 'User not found' });
+      errors.email = 'User not found';
+      return res.status(404).json(errors);
     }
 
     // check password (user.password is the encrypted one in mongo)
@@ -93,7 +101,8 @@ router.post('/login', (req, res) => {
           });
         }); // 3600secs = 1hr
       } else {
-        return res.status(400).json({ password: 'Password incorrect' });
+        errors.password = 'Password incorrect';
+        return res.status(400).json(errors);
       }
     });
   });
