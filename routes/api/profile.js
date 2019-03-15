@@ -5,6 +5,8 @@ const passport = require('passport');
 
 // load Input validation
 const validateProfileInput = require('../../validation/profile');
+const validateExperienceInput = require('../../validation/experience');
+const validateEducationInput = require('../../validation/education');
 
 // Load models
 const Profile = require('../../models/profile');
@@ -125,7 +127,7 @@ router.post(
         // check if handle exist - used on url - seo friendly
         Profile.findOne({ handle: profileFields.handle }).then(profile => {
           if (profile) {
-            errors.handle = 'That handle already excists';
+            errors.handle = 'That handle already exists';
             res.status(400).json(errors);
           }
         });
@@ -134,6 +136,94 @@ router.post(
         new Profile(profileFields).save().then(profile => res.json(profile));
       }
     });
+  }
+);
+
+// @route   POST api/profile/experience
+// @desc    Add experience to profile
+// @access  Private
+router.post(
+  '/experience',
+  passport.authenticate('jwt', { session: false }),
+  (req, res) => {
+    const { errors, isValid } = validateExperienceInput(req.body);
+
+    // Check Validation
+    if (!isValid) {
+      // Return any errors with 400 status
+      return res.status(400).json(errors);
+    }
+
+    Profile.findOne({ user: req.user.id })
+      .then(profile => {
+        if (!profile) {
+          errors.handle = 'Cannot add experience; the profile does not exist';
+          return res.status(400).json(errors);
+        }
+
+        const newExp = {
+          title: req.body.title,
+          company: req.body.company,
+          location: req.body.location,
+          from: req.body.from,
+          to: req.body.to,
+          current: req.body.current,
+          description: req.body.description
+        };
+
+        // Add to exp array
+        profile.experience.unshift(newExp);
+
+        profile.save().then(profile => res.json(profile));
+      })
+      .catch(err => {
+        const error = { error: err.toString() };
+        res.status(500).json(error);
+      });
+  }
+);
+
+// @route   POST api/profile/education
+// @desc    Add education to profile
+// @access  Private
+router.post(
+  '/education',
+  passport.authenticate('jwt', { session: false }),
+  (req, res) => {
+    const { errors, isValid } = validateEducationInput(req.body);
+
+    // Check Validation
+    if (!isValid) {
+      // Return any errors with 400 status
+      return res.status(400).json(errors);
+    }
+
+    Profile.findOne({ user: req.user.id })
+      .then(profile => {
+        if (!profile) {
+          errors.handle = 'Cannot add education; the profile does not exist';
+          return res.status(400).json(errors);
+        }
+
+        const newEdu = {
+          school: req.body.school,
+          degree: req.body.degree,
+          fieldofstudy: req.body.fieldofstudy,
+          from: req.body.from,
+          to: req.body.to,
+          current: req.body.current,
+          description: req.body.description
+        };
+
+        // Add to exp array
+        profile.education.unshift(newEdu);
+
+        profile.save().then(profile => res.json(profile));
+      })
+      .catch(err => {
+        const error = { error: err.toString() };
+        res.status(500).json(error);
+      });
   }
 );
 
